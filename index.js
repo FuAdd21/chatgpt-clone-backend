@@ -9,8 +9,10 @@ const app = express();
 
 // Allowed domains (local development + production frontend)
 const allowedOrigins = [
-  'http://localhost:5173', 
+  'http://localhost:5173',
+  'https://chatgpt-clone-frontend-mu.vercel.app/', 
   process.env.FRONTEND_URL  // This will hold Vercel URL later
+  
 ];
 
 app.use(
