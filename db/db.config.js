@@ -1,10 +1,16 @@
 import mysql from 'mysql2/promise';
+import 'dotenv/config';
 
+
+// Ensure pool uses the environment variable provided by Render
 const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
+  uri: process.env.DATABASE_URL, 
+  ssl: {
+    rejectUnauthorized: false 
+  },
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 export default db;
