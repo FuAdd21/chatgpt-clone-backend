@@ -2,14 +2,10 @@ import db from '../../../../db/db.config.js'
 // import { GoogleGenAI } from "@google/genai";
 import Groq from "groq-sdk";
 
-// const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite'
-
-// const geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant'
 const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-console.log('API KEY:', process.env.GROQ_API_KEY?.slice(0, 8) + '...');
 
 
 export const getRecentConversationRows = async (Limit = 5) => {
@@ -17,8 +13,6 @@ export const getRecentConversationRows = async (Limit = 5) => {
     const safeLimit = 
     Number.isNaN(normalizedLimit) || normalizedLimit <= 0 
         ? 20: normalizedLimit;
-
-
 
 
     const [rows] = await db.execute(
@@ -29,55 +23,19 @@ export const getRecentConversationRows = async (Limit = 5) => {
     return rows.reverse();
 };
 
-
-// const generateAssistantAnswer = async ({ historyRows, question }) => {
-//     // Format history for Gemini startChat
-//     const formattedHistory = historyRows.map(row => ({
-//         role: row.role == 'assistant' ? 'model' : 'user',
-//         parts: [{ text: row.content }],
-//     }));
-
-
-//     // sample history format
-//     // [
-//     //     {
-//     //         role: 'user',
-//     //         parts: [{ text: 'Hello, I\'m a user.'}],
-//     //     },
-//     //     {
-//     //         role: 'model',
-//     //         parts: [{ text: 'Hello, I\'m a model.'}],
-//     //     },
-
-//     //  ]
-
-
-//     const chat = geminiClient.chats.create({
-//         model: GEMINI_MODEL,
-//         config: {
-//             maxOutputTokens: 1024,
-//         },
-
-//         history: formattedHistory,
-//     });
-
-//     const result = await chat.sendMessage({ message: question });
-//     return {
-//         text: result.text,
-//         totalTokens: result.usageMetadata.totalTokenCount,
-//     };
-// };
-
-
 const generateAssistantAnswer = async ({ historyRows, question }) => {
     const messages = [
-        ...historyRows.map(row => ({
-            role: row.role === 'assistant' ? 'assistant' : 'user',
-            content: row.content,
-        })),
-        { role: 'user', content: question },
-    ];
-
+    {
+        role: 'system',
+        content:
+            'You are a helpful assistant. Format responses in clean, valid Markdown. Use short paragraphs, proper numbered or bulleted lists, and fenced code blocks with language names when showing code. Always close code fences correctly.',
+    },
+    ...historyRows.map(row => ({
+        role: row.role === 'assistant' ? 'assistant' : 'user',
+        content: row.content,
+    })),
+    { role: 'user', content: question },
+];
     const response = await groqClient.chat.completions.create({
         model: GROQ_MODEL,
         max_tokens: 1024,
