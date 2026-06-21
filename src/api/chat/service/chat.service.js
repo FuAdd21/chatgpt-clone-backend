@@ -71,13 +71,17 @@ export const getRecentConversationRows = async (Limit = 5) => {
 
 const generateAssistantAnswer = async ({ historyRows, question }) => {
     const messages = [
-        ...historyRows.map(row => ({
-            role: row.role === 'assistant' ? 'assistant' : 'user',
-            content: row.content,
-        })),
-        { role: 'user', content: question },
-    ];
-
+    {
+        role: 'system',
+        content:
+            'You are a helpful assistant. Format responses in clean, valid Markdown. Use short paragraphs, proper numbered or bulleted lists, and fenced code blocks with language names when showing code. Always close code fences correctly.',
+    },
+    ...historyRows.map(row => ({
+        role: row.role === 'assistant' ? 'assistant' : 'user',
+        content: row.content,
+    })),
+    { role: 'user', content: question },
+];
     const response = await groqClient.chat.completions.create({
         model: GROQ_MODEL,
         max_tokens: 1024,
